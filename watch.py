@@ -20,7 +20,7 @@ KEYWORD = "lofoten"
 
 def fetch_products() -> set[str]:
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, channel="chrome")
         page = browser.new_page(
             locale="de-DE",
             user_agent=(
