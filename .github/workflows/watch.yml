@@ -20,9 +20,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install
-        run: |
-          pip install playwright requests
-          python -m playwright install --with-deps chromium
+        run: pip install playwright requests
 
       - name: Run watcher
         env:
