@@ -5,6 +5,7 @@ und schickt bei neuen Artikeln eine Push-Nachricht über ntfy.sh.
 """
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
@@ -12,14 +13,16 @@ from urllib.parse import urljoin, urlsplit
 import requests
 from playwright.sync_api import sync_playwright
 
-URL = "https://www.norrona.com/de-DE/o/herren/?Category=Jackets&Concept=lofoten"
+URL = "https://www.norrona.com/de-DE/o/herren/jacken/?Concept=lofoten"
 STATE = Path("seen.json")
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC")  # z.B. "julius-lofoten-8f3k2x" – zufällig wählen!
-KEYWORD = "lofoten"
+PRODUCT_RE = re.compile(r"^/de-de/produkte/lofoten/([^/]+)/?$")
+CATEGORY_SLUGS = {"herren", "damen", "kinder", "unisex", "junior"}
 
 
 def fetch_products() -> set[str]:
     with sync_playwright() as p:
+        # Nutzt den auf GitHub-Runnern vorinstallierten Google Chrome (spart den Browser-Download)
         browser = p.chromium.launch(headless=True, channel="chrome")
         page = browser.new_page(
             locale="de-DE",
@@ -33,15 +36,19 @@ def fetch_products() -> set[str]:
         for _ in range(10):
             page.mouse.wheel(0, 4000)
             page.wait_for_timeout(800)
-        hrefs = page.eval_on_selector_all("a[href]", "els => els.map(e => e.href)")
+        # Nur Links außerhalb von Kopfzeile, Menü und Fußzeile
+        hrefs = page.eval_on_selector_all(
+            "a[href]",
+            "els => els.filter(e => !e.closest('header, nav, footer')).map(e => e.href)",
+        )
         browser.close()
 
     products = set()
     for h in hrefs:
         u = urlsplit(urljoin(URL, h))
-        path = u.path.lower()
-        # Produktlinks: enthalten "lofoten", sind aber nicht die Kategorieseite selbst
-        if KEYWORD in path and "/o/" not in path:
+        m = PRODUCT_RE.match(u.path.lower())
+        # Nur echte Produktseiten /produkte/lofoten/<modell>/, keine Kategorien
+        if m and m.group(1) not in CATEGORY_SLUGS:
             products.add(f"{u.scheme}://{u.netloc}{u.path}")
     return products
 
