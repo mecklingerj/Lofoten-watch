@@ -1,4 +1,3 @@
-# Ablage im Repo unter: .github/workflows/watch.yml
 name: Norrona Lofoten Watch
 
 on:
@@ -12,15 +11,16 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Install
-        run: pip install playwright requests
+        run: pip install requests
 
       - name: Run watcher
         env:
@@ -31,6 +31,6 @@ jobs:
         run: |
           git config user.name "watch-bot"
           git config user.email "watch-bot@users.noreply.github.com"
-          git add seen.json
-          git diff --cached --quiet || git commit -m "update seen.json"
+          git add xl_state.json
+          git diff --cached --quiet || git commit -m "update xl_state.json"
           git push
