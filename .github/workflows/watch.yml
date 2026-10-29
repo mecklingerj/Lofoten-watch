@@ -28,9 +28,10 @@ jobs:
         run: python watch.py
 
       - name: Commit state
+        if: always()
         run: |
           git config user.name "watch-bot"
           git config user.email "watch-bot@users.noreply.github.com"
-          git add xl_state.json
+          git add xl_state.json || exit 0
           git diff --cached --quiet || git commit -m "update xl_state.json"
           git push
