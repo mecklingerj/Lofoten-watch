@@ -1,3 +1,6 @@
-[
-  "https://www.norrona.com/de-DE/produkte/lofoten/lofoten-down800-anorak-herren/"
-]
+{
+  "models": [
+    "https://www.norrona.com/de/de/produkt/lofoten/lofoten-down800-anorak-men-1001-24"
+  ],
+  "failing": false
+}
